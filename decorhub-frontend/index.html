@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DecorHub | Premium Home Decor</title>
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Base Styles -->
+    <link rel="stylesheet" href="index.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <!-- Navigation -->
+    <header class="navbar">
+        <div class="container flex justify-between items-center">
+            <a href="index.html" class="logo">
+                <i class="fa-solid fa-couch"></i> Decor<span>Hub</span>
+            </a>
+            <nav class="nav-links">
+                <a href="index.html" class="nav-link active">Home</a>
+                <a href="cart.html" class="nav-link">
+                    <i class="fa-solid fa-shopping-cart"></i> Cart <span id="cart-count" class="badge">0</span>
+                </a>
+                <div id="auth-links" class="flex gap-4">
+                    <!-- Injected by script.js based on auth state -->
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero-section container mt-8 mb-8 text-center glass-card" style="padding: 4rem 2rem;">
+        <h1 class="mb-4">Elevate Your Living Space</h1>
+        <p style="font-size: 1.25rem; max-width: 600px; margin: 0 auto;" class="mb-6">Discover premium home decoration
+            items crafted for the modern, elegant home. Transform ordinary rooms into extraordinary experiences.</p>
+        <a href="#products-section" class="btn btn-primary mt-4">
+            <i class="fa-solid fa-bag-shopping"></i> Shop Collection
+        </a>
+    </section>
+
+    <!-- Products Section -->
+    <main id="products-section" class="container mb-8">
+        <div class="flex justify-between items-center mb-6">
+            <h2>Featured Collection</h2>
+            <div id="admin-controls" class="hidden">
+                <a href="admin.html" class="btn btn-secondary"><i class="fa-solid fa-gauge"></i> Dashboard</a>
+            </div>
+        </div>
+
+        <!-- Products Grid Container -->
+        <div id="products-loader" class="text-center w-full py-8">
+            <i class="fa-solid fa-circle-notch fa-spin fa-3x" style="color: var(--primary)"></i>
+            <p class="mt-4">Curating products...</p>
+        </div>
+        <div id="products" class="grid grid-cols-3 gap-6 hidden"></div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="mt-8"
+        style="background: rgba(20, 21, 24, 0.9); padding: 3rem 0; border-top: 1px solid var(--border-light);">
+        <div class="container text-center">
+            <a href="index.html" class="logo justify-center mb-4">
+                <i class="fa-solid fa-couch"></i> Decor<span>Hub</span>
+            </a>
+            <p class="mb-0 text-muted">&copy; 2026 DecorHub. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

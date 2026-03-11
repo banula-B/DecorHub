@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile | DecorHub</title>
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Base Styles -->
+    <link rel="stylesheet" href="index.css">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .order-item-list {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 0.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .order-card {
+            border-bottom: 1px solid var(--border-light);
+            padding-bottom: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .order-card:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="navbar" style="background: rgba(20, 21, 24, 0.95);">
+        <div class="container flex justify-between items-center">
+            <a href="index.html" class="logo">
+                <i class="fa-solid fa-couch"></i> Decor<span>Hub</span>
+            </a>
+            <nav class="nav-links">
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="cart.html" class="nav-link">
+                    <i class="fa-solid fa-shopping-cart"></i> Cart <span id="cart-count" class="badge">0</span>
+                </a>
+                <div id="auth-links" class="flex gap-4"></div>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container mt-8 mb-8" style="min-height: 80vh;">
+        <div class="flex flex-col md:flex-row gap-8">
+
+            <!-- Left Sidebar: Profile Details -->
+            <div class="w-full md:w-1/3">
+                <div class="glass-card text-center sticky top-24">
+                    <div
+                        style="width: 100px; height: 100px; margin: 0 auto 1.5rem; background: var(--secondary); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <i class="fa-solid fa-user fa-3x" style="color: white;"></i>
+                    </div>
+                    <h2 id="profile-name" class="mb-2">Customer</h2>
+                    <p id="profile-email" class="text-muted mb-6">customer@email.com</p>
+
+                    <div style="border-top: 1px solid var(--border-light); padding-top: 1.5rem; text-align: left;">
+                        <h4 class="mb-4">Account Summary</h4>
+                        <div class="flex justify-between mb-2">
+                            <span class="text-muted">Role</span>
+                            <span id="profile-role" style="font-weight: 600;">USER</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-muted">Total Orders</span>
+                            <span id="profile-order-count" style="font-weight: 600;">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Content: Order History -->
+            <div class="w-full md:w-2/3">
+                <div class="flex justify-between items-center mb-6">
+                    <h2><i class="fa-solid fa-clock-rotate-left" style="color: var(--primary);"></i> Order History</h2>
+                    <button onclick="loadUserOrders()" class="btn btn-secondary btn-sm">
+                        <i class="fa-solid fa-arrows-rotate"></i>
+                    </button>
+                </div>
+
+                <div class="glass-card w-full" id="user-orders-container">
+                    <div class="text-center py-8">
+                        <i class="fa-solid fa-circle-notch fa-spin fa-2x"></i>
+                        <p class="mt-4">Loading your historic orders...</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <footer class="mt-8"
+        style="background: rgba(20, 21, 24, 0.9); padding: 3rem 0; border-top: 1px solid var(--border-light);">
+        <div class="container text-center">
+            <p class="mb-0 text-muted">&copy; 2026 DecorHub. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Toast container -->
+    <div class="toast-container"></div>
+
+    <!-- Scripts -->
+    <script src="script.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const user = JSON.parse(localStorage.getItem("user"));
+            if (!user) {
+                window.location.href = "login.html";
+                return;
+            }
+
+            // Populate Sidebar
+            document.getElementById("profile-name").innerText = user.name;
+            document.getElementById("profile-email").innerText = user.email;
+            document.getElementById("profile-role").innerText = user.role;
+
+            loadUserOrders(user.id);
+        });
+
+        function loadUserOrders(userId) {
+            if (!userId || userId === 'undefined') {
+                const u = JSON.parse(localStorage.getItem("user"));
+                if (u) userId = u.id;
+            }
+
+            const container = document.getElementById("user-orders-container");
+            const countEl = document.getElementById("profile-order-count");
+
+            // If userId is still undefined, the session is stale — user must re-login
+            if (!userId || userId === undefined || String(userId) === 'undefined') {
+                container.innerHTML = `
+                    <div class="text-center py-8">
+                        <i class="fa-solid fa-arrow-right-to-bracket fa-3x mb-4" style="color: var(--primary);"></i>
+                        <h3>Session Expired</h3>
+                        <p class="mt-2 text-muted">Please log out and log back in to view your order history.</p>
+                        <a href="login.html" class="btn btn-primary mt-4" style="margin-top: 1rem;" onclick="localStorage.removeItem('user')">Log out &amp; Re-login</a>
+                    </div>
+                `;
+                return;
+            }
+
+            fetch(`http://localhost:8080/orders/user/${userId}`)
+                .then(res => {
+                    if (!res.ok) {
+                        return res.text().then(text => {
+                            throw new Error(`Server Error (${res.status}): ${text || res.statusText}`);
+                        });
+                    }
+                    return res.json();
+                })
+                .then(orders => {
+                    if (countEl) countEl.innerText = orders.length;
+
+                    if (orders.length === 0) {
+                        container.innerHTML = `
+                            <div class="text-center py-8">
+                                <i class="fa-solid fa-box-open fa-3x mb-4 text-muted"></i>
+                                <h3>No orders found</h3>
+                                <p class="mt-2 mb-6">You haven't placed any orders yet.</p>
+                                <a href="index.html#products-section" class="btn btn-primary">Start Shopping</a>
+                            </div>
+                        `;
+                        return;
+                    }
+
+                    // Sort newest first
+                    orders.sort((a, b) => b.id - a.id);
+
+                    let html = "";
+                    orders.forEach(o => {
+                        const d = new Date(o.createdAt);
+                        const dateStr = d.toLocaleDateString() + " " + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+                        // Status Colors
+                        let statusColor = "var(--text-main)";
+                        let icon = "fa-box";
+                        if (o.status === "PLACED") { statusColor = "#3b82f6"; icon = "fa-clipboard-check"; }
+                        else if (o.status === "PACKED") { statusColor = "#f59e0b"; icon = "fa-box-open"; }
+                        else if (o.status === "HANDED_OVER") { statusColor = "#8b5cf6"; icon = "fa-truck-fast"; }
+                        else if (o.status === "DELIVERED") { statusColor = "#10b981"; icon = "fa-house-circle-check"; }
+                        else if (o.status === "CANCELLED") { statusColor = "var(--accent)"; icon = "fa-ban"; }
+
+                        // Generate Items HTML
+                        let itemsHtml = "";
+                        if (o.items && o.items.length > 0) {
+                            o.items.forEach(item => {
+                                itemsHtml += `
+                                <div class="flex justify-between items-center" style="font-size: 0.95rem;">
+                                    <span style="color: var(--text-muted);">${item.quantity}x ${item.productName}</span>
+                                    <span>$${parseFloat(item.price * item.quantity).toFixed(2)}</span>
+                                </div>
+                                `;
+                            });
+                        } else {
+                            itemsHtml = "<div class='text-muted text-sm'>No items recorded (Legacy order)</div>";
+                        }
+
+                        html += `
+                        <div class="order-card" id="order-card-${o.id}">
+                            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-4">
+                                <div>
+                                    <h3 style="margin: 0; color: var(--text-main);">Order #${o.id}</h3>
+                                    <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.25rem;">Placed on ${dateStr}</div>
+                                </div>
+                                <div class="text-right flex flex-row md:flex-col items-center gap-4 md:gap-1">
+                                    <div style="font-size: 1.25rem; font-weight: 700; color: var(--secondary);">$${parseFloat(o.totalAmount).toFixed(2)}</div>
+                                    <div style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.25rem 0.75rem; background: rgba(0,0,0,0.2); border-radius: 2rem; border: 1px solid ${statusColor}33; color: ${statusColor}; font-weight: 600; font-size: 0.85rem;">
+                                        <i class="fa-solid ${icon}"></i> ${o.status}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex gap-4 items-center flex-wrap">
+                                <button onclick="toggleItems(${o.id})" class="btn" style="background: transparent; color: var(--primary); padding: 0; font-size: 0.9rem;">
+                                    <i class="fa-solid fa-chevron-down" id="icon-${o.id}" style="transition: transform 0.3s;"></i> View Items
+                                </button>
+                                ${o.status === 'PLACED' ? `
+                                <button onclick="cancelOrder(${o.id})" class="btn" 
+                                    style="background: transparent; color: #ef4444; border: 1px solid #ef444433; border-radius: 2rem; padding: 0.25rem 1rem; font-size: 0.85rem; font-weight: 600;">
+                                    <i class="fa-solid fa-ban"></i> Cancel Order
+                                </button>` : ''}
+                            </div>
+
+                            <div id="items-${o.id}" class="order-item-list hidden">
+                                <h4 style="font-size: 0.9rem; margin-bottom: 0.5rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem;">Purchase Summary</h4>
+                                ${itemsHtml}
+                            </div>
+                        </div>
+                        `;
+                    });
+
+                    container.innerHTML = html;
+                })
+                .catch(err => {
+                    console.error("Profile load err:", err);
+                    const isNetworkError = err.message.includes("Failed to fetch") || err.message.includes("NetworkError");
+                    container.innerHTML = `
+                        <div class="text-center py-8">
+                            <i class="fa-solid fa-triangle-exclamation fa-3x mb-4" style="color: var(--accent);"></i>
+                            <h3>${isNetworkError ? 'Cannot reach server' : 'Error loading orders'}</h3>
+                            <p class="mt-2 text-muted">
+                                ${isNetworkError
+                            ? 'The backend server (localhost:8080) appears to be offline OR blocking the request (CORS). Please restart your Spring Boot application.'
+                            : err.message}
+                            </p>
+                        </div>
+                    `;
+                });
+        }
+
+        function toggleItems(id) {
+            const list = document.getElementById(`items-${id}`);
+            const icon = document.getElementById(`icon-${id}`);
+            if (list.classList.contains('hidden')) {
+                list.classList.remove('hidden');
+                icon.style.transform = 'rotate(180deg)';
+            } else {
+                list.classList.add('hidden');
+                icon.style.transform = 'rotate(0deg)';
+            }
+        }
+
+        function cancelOrder(orderId) {
+            if (!confirm(`Are you sure you want to cancel Order #${orderId}? This cannot be undone.`)) return;
+
+            fetch(`http://localhost:8080/orders/${orderId}/status`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: 'CANCELLED' })
+            })
+                .then(res => {
+                    if (!res.ok) throw new Error('Failed to cancel');
+                    return res.json();
+                })
+                .then(() => {
+                    showToast('Order cancelled successfully.', 'success');
+                    loadUserOrders(); // Refresh order list
+                })
+                .catch(err => {
+                    console.error(err);
+                    showToast('Could not cancel order. Please try again.', 'error');
+                });
+        }
+    </script>
+</body>
+
+</html>
