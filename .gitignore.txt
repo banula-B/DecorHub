@@ -15,3 +15,18 @@ node_modules/
 # OS
 .DS_Store
 Thumbs.db
+
+# Eclipse workspace
+.metadata/
+
+# Eclipse settings
+.settings/
+.project
+.classpath
+
+# Java build files
+target/
+
+# OS files
+.DS_Store
+Thumbs.db
