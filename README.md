@@ -14,6 +14,9 @@ DecorHub is a simple e-commerce web application developed as a university assign
 - Add products to cart
 - Remove products from cart
 - Update product quantity
+- Place Orders
+- View Order Details
+- Cancel Orders
 
 ### Admin Features
 - Add new products
