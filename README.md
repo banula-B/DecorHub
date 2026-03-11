@@ -88,7 +88,7 @@ Login user
 ### 1. Clone the Repository
 
 ```
-git clone https://github.com/yourusername/decorhub.git
+git clone https://github.com/banula-B/DecorHub.git
 ```
 
 ### 2. Create MySQL Database
